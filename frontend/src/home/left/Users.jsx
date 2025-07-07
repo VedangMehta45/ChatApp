@@ -1,20 +1,18 @@
 import React from "react";
 import User from "./User";
-import userGetAllUsers from "../../context/userGetAllUsers";
-
+import useConversation from "../../statemanage/useConversation.js";
 
 function Users() {
-  const [allUsers, loading] = userGetAllUsers();      
-  console.log("All Users:", allUsers);
+  const { selectedConversation } = useConversation();
 
   return (
     <div className="users-container">
-      {loading ? (
-        <p>Loading...</p> // Display a loading message while fetching users
+      {selectedConversation ? (
+        <User user={selectedConversation} />
       ) : (
-        allUsers.map((user, index) => {
-          return <User key={index} user={user} />;
-        })
+        <p className="text-center text-sm text-lavenderBlue font-oswald mt-4">
+          Search for a user by email to start a conversation.
+        </p>
       )}
     </div>
   );

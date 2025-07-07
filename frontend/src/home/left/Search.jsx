@@ -5,7 +5,7 @@ import useConversation from "../../statemanage/useConversation.js";
 import toast from "react-hot-toast";
 
 function Search() {
-  const [search, setSearch] = useState();
+  const [search, setSearch] = useState("");
   const [allUsers] = userGetAllUsers();
   const { setSelectedConversation } = useConversation();
 
@@ -15,7 +15,7 @@ function Search() {
 
     // Find the user that matches the search term
     const conversation = allUsers.find((user) =>
-      user.name.toLowerCase().includes(search.toLowerCase())
+      user.email.toLowerCase().includes(search.toLowerCase())
     );
 
     if (conversation) {
@@ -29,9 +29,7 @@ function Search() {
   return (
     <div className="h-[10vh] border-cyberNavy">
       <div className="p-4">
-        <form
-          onSubmit={handleSubmit}
-        >
+        <form onSubmit={handleSubmit}>
           <div className="flex space-x-4 items-center">
             {/* Input Field */}
             <label className="border-[1px] border-neonMagenta bg-cyberNavy rounded-2xl flex items-center gap-2 w-[80%] p-3  transition-all">
