@@ -29,19 +29,19 @@ io.on("connection", (socket) => {
   }
   io.emit("getOnline", Object.keys(users)); //Will show whether the user is online or offline
   // Handle incoming messages
-  socket.on("sendMessage", (messageData) => {
-    const { receiverId, message } = messageData;
+  // socket.on("sendMessage", (messageData) => {
+  //   const { receiverId, message } = messageData;
 
-    // Get receiver's socket ID
-    const receiverSocketId = users[receiverId];
+  //   // Get receiver's socket ID
+  //   const receiverSocketId = users[receiverId];
 
-    if (receiverSocketId) {
-      // Emit the message to the receiver
-      io.to(receiverSocketId).emit("newMessage", message);
-    } else {
-      console.log("User not connected or online");
-    }
-  });
+  //   if (receiverSocketId) {
+  //     // Emit the message to the receiver
+  //     io.to(receiverSocketId).emit("newMessage", message);
+  //   } else {
+  //     console.log("User not connected or online");
+  //   }
+  // });
   socket.on("disconnect", () => {
     console.log("Client disconnected", socket.id);
     delete users[userId];

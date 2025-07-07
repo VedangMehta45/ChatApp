@@ -1,5 +1,5 @@
 import { io } from "../SocketIO/server.js";
-import Conversation from "../models/conversation.models.js";
+import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
 import { getRecieverSocketId } from "../SocketIO/server.js";
 
@@ -18,7 +18,6 @@ export const sendMessage = async (req, res) => {
     if (message.length > 500) {
       return res.status(400).json({ message: "Message is too long" });
     }
-    
 
     let conversation = await Conversation.findOne({
       participants: { $all: [senderId, receiverId] },
@@ -65,7 +64,7 @@ export const getMessage = async (req, res) => {
       participants: { $all: [senderId, chatuser] },
     }).populate("messages"); //to see actual content or actual message
     if (!conversation) {
-      return res.status(201).json([]);
+      return res.status(201).json({ messages: [] });
     }
     const messages = conversation.messages;
     res.status(201).json({ messages });

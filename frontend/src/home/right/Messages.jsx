@@ -77,13 +77,16 @@ function Messages() {
       onScroll={handleScroll} // Detect user scroll
       style={{ overflowY: "auto", height: "100%" }} // Ensure the container is scrollable
     >
-      {messages.map((message, index) => (
-        <Message
-          key={message._id} // Unique key for each message
-          message={message}
-          previousMessage={index > 0 ? messages[index - 1] : null} // Optional: previous message comparison
-        />
-      ))}
+      {messages.map((message, index) => {
+        console.log("Rendering message with key:", message._id);
+        return (
+          <Message
+            key={message._id}
+            message={message}
+            previousMessage={index > 0 ? messages[index - 1] : null}
+          />
+        );
+      })}
     </div>
   );
 }
