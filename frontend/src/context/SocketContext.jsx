@@ -7,10 +7,8 @@ import React, {
 } from "react";
 import { io } from "socket.io-client";
 
-// Create the SocketContext and provide the socket
 const SocketContext = createContext(null);
 
-// Custom hook to use the socket context
 export const useSocketContext = () => useContext(SocketContext);
 
 let socket;
@@ -20,33 +18,37 @@ export const SocketProvider = ({ children }) => {
   const socketRef = useRef(null);
 
   useEffect(() => {
+    const authUser = JSON.parse(localStorage.getItem("messenger"));
+    const userId = authUser?.user?._id ;
+    console.log("🔌 Connecting socket with userId:", userId);
+
+    if (!userId) {
+      console.warn("⚠️ No user ID found. Not connecting socket.");
+      return;
+    }
+
     if (!socketRef.current) {
       socketRef.current = io("ws://localhost:4001", {
-        query: {
-          userId: "676bbeb0533f8ab564ba12e5", // User ID
-        },
+        query: { userId },
       });
 
       socket = socketRef.current;
 
       socket.on("connect", () => {
-        console.log("WebSocket connected", socket.id); // Log successful connection
+        console.log("✅ WebSocket connected:", socket.id);
       });
 
       socket.on("disconnect", () => {
-        console.log("WebSocket disconnected");
+        console.log("🔌 WebSocket disconnected");
       });
 
-      // Listen for updates to online users
       socket.on("onlineUsers", (users) => {
-        setOnlineUsers(users); // Update the online users list
+        setOnlineUsers(users);
       });
 
       return () => {
-        if (socket) {
-          socket.close();
-          console.log("WebSocket closed");
-        }
+        socket.close();
+        console.log("🔌 Socket closed");
       };
     }
   }, []);

@@ -14,15 +14,13 @@ const messageSchema = mongoose.Schema(
     },
     message: {
       type: String,
-      required: true,
-      maxLength: 1000,
+      default: "",
       trim: true,
-      validate: [
-        {
-          validator: (value) => value.length > 0,
-          message: "Message cannot be empty",
-        },
-      ],
+      maxLength: 1000,
+    },
+    file: {
+      type: String, // store the filename (or path if needed)
+      default: null,
     },
     createdAt: { type: Date, default: Date.now },
   },

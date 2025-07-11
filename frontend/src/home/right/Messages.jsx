@@ -2,58 +2,70 @@ import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import Message from "./Message";
 import Loading from "../../components/Loading.jsx";
 import useGetMessage from "../../context/useGetMessage.js";
+import { useSocketContext } from "../../context/SocketContext.jsx"; //  socket
 
 function Messages() {
   const { messages, loading, error } = useGetMessage();
-  const containerRef = useRef(null); // Reference to the messages container
-  const [isUserScrolling, setIsUserScrolling] = useState(false); // Flag to check if the user is manually scrolling
+  const { socket } = useSocketContext(); //  get socket instance
+  const [localMessages, setLocalMessages] = useState([]); //  local messages for real-time update
+  const containerRef = useRef(null);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
 
-  // Scroll to the bottom function
-  const scrollToBottom = () => {
-    const container = containerRef.current;
-    if (container) {
-      console.log("Scrolling to bottom...");
-      container.scrollTop = container.scrollHeight; // Scroll to the bottom of the container
+  //  Sync fetched messages to local state initially
+  useEffect(() => {
+    if (messages?.length) {
+      console.log("📩 Initial messages from DB:", messages);
+      setLocalMessages(messages);
     }
-  };
+  }, [messages]);
 
-  // Check if the user is manually scrolling up or down
+
+
+  //  Listen for real-time incoming messages
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (newMessage) => {
+      console.log("📥 New message received via socket in Messages.jsx:", newMessage);
+      setLocalMessages((prev) => [...prev, newMessage]);
+    };
+
+    socket.on("newMessage", handleNewMessage);
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
+  }, [socket]);
+
+  //  Auto-scroll to bottom unless user is manually scrolling
+  useLayoutEffect(() => {
+    if (!isUserScrolling) {
+      const container = containerRef.current;
+      if (container) container.scrollTop = container.scrollHeight;
+    }
+  }, [localMessages, isUserScrolling]);
+
   const handleScroll = () => {
     const container = containerRef.current;
     if (container) {
       const isAtBottom =
         container.scrollHeight - container.scrollTop === container.clientHeight;
-
-      setIsUserScrolling(!isAtBottom); // Set the flag if the user is not at the bottom
+      setIsUserScrolling(!isAtBottom);
     }
   };
 
-  // Auto-scroll to the bottom when messages change and when the component mounts
-  useLayoutEffect(() => {
-    if (!isUserScrolling) {
-      scrollToBottom(); // Scroll only if the user is not scrolling manually
-    }
-  }, [messages, isUserScrolling]); // Trigger when messages change or user scrolling flag changes
+  // Loading state
+  if (loading) return <Loading />;
 
-  // Handle loading state
-  if (loading) {
-    return <Loading />;
-  }
-
-  // Error handling if messages is not an array
-  if (!Array.isArray(messages)) {
+  //  Error state
+  if (error)
     return (
-      <div className="error-message">
-        <p>
-          Invalid message data received. Try refreshing the page or log in
-          again.
-        </p>
+      <div className="error-message flex h-screen items-center justify-center text-center font-semibold text-xl">
+        <p>{error}</p>
       </div>
     );
-  }
 
-  // Handle no messages
-  if (messages.length === 0) {
+  //  Invalid or no message state
+  if (!Array.isArray(messages) || localMessages.length === 0) {
     return (
       <div className="no-messages flex h-screen items-center justify-center text-center font-semibold text-xl">
         <p>No messages yet. Let's start the conversation now</p>
@@ -61,32 +73,20 @@ function Messages() {
     );
   }
 
-  // Handle error state
-  if (error) {
-    return (
-      <div className="error-message flex h-screen items-center justify-center text-center font-semibold text-xl">
-        <p>{error}</p>
-      </div>
-    );
-  }
-
   return (
     <div
       className="messages-container"
-      ref={containerRef} // Attach the ref here
-      onScroll={handleScroll} // Detect user scroll
-      style={{ overflowY: "auto", height: "100%" }} // Ensure the container is scrollable
+      ref={containerRef}
+      onScroll={handleScroll}
+      style={{ overflowY: "auto", height: "100%" }}
     >
-      {messages.map((message, index) => {
-        console.log("Rendering message with key:", message._id);
-        return (
-          <Message
-            key={message._id}
-            message={message}
-            previousMessage={index > 0 ? messages[index - 1] : null}
-          />
-        );
-      })}
+      {localMessages.map((message, index) => (
+        <Message
+          key={message._id}
+          message={message}
+          previousMessage={index > 0 ? localMessages[index - 1] : null}
+        />
+      ))}
     </div>
   );
 }

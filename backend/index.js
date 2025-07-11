@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "path";
+
 
 import userRouter from "./routes/user.route.js";
 import messageRoute from "./routes/message.route.js";
@@ -11,10 +13,12 @@ import conversationRouter from "./routes/conversation.route.js"; // <-- import c
 import { app, server } from "./SocketIO/server.js";
 
 dotenv.config();
+const __dirname = path.resolve();
 
 app.use(express.json());
 app.use(cors()); // Enable CORS for all requests
 app.use(cookieParser());
+app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
 const PORT = process.env.PORT || 5001;
 const URI = process.env.MONGODB_URI;

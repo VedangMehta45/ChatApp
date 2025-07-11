@@ -21,31 +21,47 @@ export const getRecieverSocketId = (recieverId) => {
 const users = {};
 //Socket is used on both size frontend and backend
 io.on("connection", (socket) => {
+  console.log("✅ [Backend] New socket connected:", socket.id);
   console.log("New client", socket.id);
   const userId = socket.handshake.query.userId;
+  console.log("🆔 [Backend] Connected User ID:", userId);
   if (userId) {
     users[userId] = socket.id;
-    console.log("Connected Users: ", users);
+    // console.log("Connected Users: ", users);
+    console.log("📌 [Backend] Users Map:", users);
   }
-  io.emit("getOnline", Object.keys(users)); //Will show whether the user is online or offline
+  io.emit("onlineUsers", Object.keys(users)); //Will show whether the user is online or offline
+
+
+
   // Handle incoming messages
-  // socket.on("sendMessage", (messageData) => {
-  //   const { receiverId, message } = messageData;
+  socket.on("sendMessage", (messageData) => {
 
-  //   // Get receiver's socket ID
-  //   const receiverSocketId = users[receiverId];
+    const { receiverId, message } = messageData;
+    const receiverSocketId = users[receiverId];
+      console.log("📤 Sending message to receiverId:", receiverId);
+      console.log("📨 Message content:", message);
+      console.log("🎯 Receiver socket ID:", receiverSocketId);
+    if (receiverSocketId) {
+      // Emit the message to the receiver
+      console.log("📤 [Backend] Emitting newMessage to receiver");
+      io.to(receiverSocketId).emit("newMessage", message);
+      console.log("✅ Message emitted to receiver");
+      console.log("📤 Emitting to:", receiverSocketId);
+console.log("📤 Payload:", message);
 
-  //   if (receiverSocketId) {
-  //     // Emit the message to the receiver
-  //     io.to(receiverSocketId).emit("newMessage", message);
-  //   } else {
-  //     console.log("User not connected or online");
-  //   }
-  // });
+    } else {
+      console.log("User not connected or online");
+      console.log("❌ [Backend] Receiver not connected");
+
+    }
+  });
+
+
   socket.on("disconnect", () => {
-    console.log("Client disconnected", socket.id);
+    console.log("Client disconnected", socket.id, "for userId:", userId);
     delete users[userId];
-    io.emit("getOnline", Object.keys(users));
+    io.emit("onlineUsers", Object.keys(users));
   });
 });
 
